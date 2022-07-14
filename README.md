@@ -48,6 +48,6 @@ One example beam search run with four threads on a PFSP VFR instance is performe
 
 > JULIA_EXCLUSIVE=1 julia --threads=4 parbeam_pfsp.jl VFR100_60_1 10000 flow_time_bound_and_idle_time 0 1 0.0 lex none none
 
-In the output, the objective value (here: flowtime) and solution (here: schedule, ordering fo jobs) is given:
+In the output, the objective value (here: flowtime) and solution (here: schedule, ordering of jobs) is given:
 
 > [ Info: minimum objective and solution: (651337.0, [24, 12, 49, 65, 10, 38, 52, 76, 16, 85, 99, 92, 97, 23, 60, 96, 75, 46, 93, 72, 82, 13, 79, 94, 74, 6, 58, 47, 48, 77, 19, 43, 86, 29, 15, 81, 34, 87, 32, 66, 91, 90, 17, 1, 21, 61, 8, 64, 68, 71, 18, 51, 33, 80, 63, 84, 53, 28, 83, 69, 95, 11, 22, 4, 70, 39, 42, 73, 20, 35, 50, 67, 57, 88, 98, 100, 7, 59, 9, 26, 36, 27, 56, 25, 44, 54, 3, 78, 40, 2, 31, 30, 89, 37, 5, 45, 14, 62, 41, 55])
