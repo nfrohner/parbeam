@@ -6,6 +6,7 @@ using Printf
 using MPI
 using Logging
 using Random
+using Printf: @printf, @sprintf
 
 # abstract types
 abstract type AbstractInstance end
@@ -14,6 +15,7 @@ abstract type AbstractSuccessorData end
 abstract type AbstractBeam end
 abstract type AbstractAdditionalData end
 abstract type AbstractAdditionalSuccessorData end
+abstract type AbstractAdditionalConfiguration end
 
 # structs
 @enum ProblemType begin
@@ -26,12 +28,17 @@ mutable struct Configuration
     beam_width::Int
     maximum_number_of_successors_by_node::Int
     maximum_layer_number::Int
+    variable_ordering::String
     guidance_function::String
+    tie_breaking::String
     shrink_successor_specs::Bool
     cacheline_length_int::Int
     successor_creation_load_balancing::String
     states_filtering::String
+    additional_configuration::AbstractAdditionalConfiguration
 end
+
+struct EmptyAdditionalConfiguration <: AbstractAdditionalConfiguration end
 
 mutable struct NodeData{T<:Number,U<:Number,V<:Number} <: AbstractNodeData
     layer::Array{V, 1}
@@ -66,7 +73,7 @@ mutable struct Statistics
     parallel_counting_sort_time_min_max::Float64
     parallel_counting_sort_time_binning::Float64
     parallel_counting_sort_time_cutting::Float64
-    partial_quick_sort_time::Float64
+    tie_breaking_time::Float64
     successor_specs_shrinking_time::Float64
     number_of_non_tie_successors::Int
     number_of_tie_successors::Int
@@ -80,6 +87,10 @@ mutable struct Statistics
 end
 
 # abstract functions
+function additional_configuration_type()::DataType
+    EmptyAdditionalConfiguration
+end
+
 function problem_type(instance::AbstractInstance)
     mini
 end
@@ -90,7 +101,7 @@ end
 function prepare_beam_and_successor_specs(configuration::Configuration, instance::AbstractInstance)
 end
 
-function initial_lb(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam)
+function initial_estimate(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam)::Number
 end
 
 function is_terminal(instance::AbstractInstance, beam::AbstractBeam, Q_idx::Int)::Bool
@@ -118,7 +129,7 @@ end
 function copy(from_successor::AbstractSuccessorData, to_successors::AbstractSuccessorData, from_idx::Int, to_idx::Int)
 end
 
-function make_transition(instance::AbstractInstance, successor_specs::AbstractSuccessorData, Q::AbstractBeam, Q_idx::Int, spec_idx::Int)
+function make_transition(configuration::Configuration, instance::AbstractInstance, successor_specs::AbstractSuccessorData, Q::AbstractBeam, Q_idx::Int, spec_idx::Int)
 end
 
 function initial_move_down(configuration::Configuration, instance::AbstractInstance, Q::AbstractBeam, successor_moves)
@@ -178,19 +189,23 @@ end
 
 function create_successors(configuration::Configuration, instance::AbstractInstance, Q::AbstractBeam, Q_len::Int, successor_specs::AbstractSuccessorData, sigma::Float64, layer::Number)
     number_of_successors_arr = zeros(Int, Threads.nthreads())
-    if Threads.nthreads() > 1 && configuration.successor_creation_load_balancing == "shuffle"
+    #time_per_thread = zeros(Float64, Threads.nthreads())
+    total_time = @elapsed if Threads.nthreads() > 1 && configuration.successor_creation_load_balancing == "shuffle"
         partitioned_ranges = collect(Iterators.partition(1:Q_len, 100*configuration.cacheline_length_int))
         random_ordering = randperm(length(partitioned_ranges))
 
         Threads.@threads for j::Int in 1:length(partitioned_ranges::Vector{UnitRange{Int64}})
             for i::Int in partitioned_ranges[random_ordering[j]::Int]::UnitRange{Int64}
-                successors_count = eval_successors(configuration, instance, Q, successor_specs, (i-1)*configuration.maximum_number_of_successors_by_node+1, i, sigma)
-                number_of_successors_arr[Threads.threadid()] += successors_count
+                if Q.nodes.layer[i] == layer
+                    successors_count = eval_successors(configuration, instance, Q, successor_specs, (i-1)*configuration.maximum_number_of_successors_by_node+1, i, sigma)
+                    number_of_successors_arr[Threads.threadid()] += successors_count
+                end
             end
         end
     else
         if configuration.states_filtering == "none"
             Threads.@threads for i in 1:Q_len
+                #time_per_thread[Threads.threadid()] += @elapsed successors_count = eval_successors(configuration, instance, Q, successor_specs, (i-1)*configuration.maximum_number_of_successors_by_node+1, i, sigma)
                 successors_count = eval_successors(configuration, instance, Q, successor_specs, (i-1)*configuration.maximum_number_of_successors_by_node+1, i, sigma)
                 number_of_successors_arr[Threads.threadid()] += successors_count
             end
@@ -204,7 +219,7 @@ function create_successors(configuration::Configuration, instance::AbstractInsta
         end
 
     end
-    # @printf("[CSV-threads-successors] %d;%s\n", layer, join(number_of_successors_arr, ','))
+    #@printf("[CSV-threads-successors] %d;%d;%.02f;%s;%s\n", layer, Threads.nthreads(), total_time, join(number_of_successors_arr, ';'), join(time_per_thread, ';'))
     sum(number_of_successors_arr)
 end
 
@@ -310,13 +325,13 @@ function surviving_successor_specs_from_counting_sort!(configuration::Configurat
     stats.number_of_non_tie_successors += number_of_non_ties
     stats.number_of_tie_successors += number_of_ties
 
-    make_transitions_for_surviving_successor_specs_from_counting_sort!(instance, successor_specs, current_successor_spec_count, Q, Q_next, layer, k, cut_off_prio, number_of_ties, number_of_non_ties, maximum_number_of_ties, stats)
+    make_transitions_for_surviving_successor_specs_from_counting_sort!(configuration, instance, successor_specs, current_successor_spec_count, Q, Q_next, layer, k, cut_off_prio, number_of_ties, number_of_non_ties, maximum_number_of_ties, stats)
     cut_off_prio
 end
 
-function make_transitions_for_surviving_successor_specs_from_counting_sort!(instance::AbstractInstance, successor_specs::AbstractSuccessorData, current_successor_spec_count::Int, Q::AbstractBeam, Q_next::AbstractBeam, layer::Number, k::Int, cut_off_priority::Int, number_of_ties::Int, number_of_non_ties::Int, maximum_number_of_ties::Int, stats::Statistics)
+function make_transitions_for_surviving_successor_specs_from_counting_sort!(configuration::Configuration, instance::AbstractInstance, successor_specs::AbstractSuccessorData, current_successor_spec_count::Int, Q::AbstractBeam, Q_next::AbstractBeam, layer::Number, k::Int, cut_off_priority::Int, number_of_ties::Int, number_of_non_ties::Int, maximum_number_of_ties::Int, stats::Statistics)
     #non_tie_successor_spec_indices = Array{Int, 1}(undef, number_of_non_ties)
-    non_tie_successor_spec_indices_by_thread =  Array{Vector{Int}}(undef, Threads.nthreads())
+    non_tie_successor_spec_indices_by_thread = Array{Vector{Int}}(undef, Threads.nthreads())
     for i in 1:Threads.nthreads()
         non_tie_successor_spec_indices_by_thread[i] = Vector{Int}()
         sizehint!(non_tie_successor_spec_indices_by_thread, convert(Int, ceil(number_of_non_ties/Threads.nthreads())))
@@ -355,22 +370,37 @@ function make_transitions_for_surviving_successor_specs_from_counting_sort!(inst
     #println(work_by_threads_count)
 
     #@assert consumed_ties[] == number_of_ties
-    stats.partial_quick_sort_time += @elapsed tie_breaking_successor_spec_priorities = @view successor_specs.priority[tie_breaking_successor_spec_indices]
+    stats.tie_breaking_time += @elapsed tie_breaking_successor_spec_priorities = @view successor_specs.priority[tie_breaking_successor_spec_indices]
     #@assert consumed_specs[] + maximum_number_of_ties == k
 
     # non ties state transitions
     stats.transitions_time += @elapsed Threads.@threads for j in 1:number_of_non_ties
         i = non_tie_successor_spec_indices[j]
         copy(instance, Q, Q_next, successor_specs.Q_idx[i], j)
-        make_transition(instance, successor_specs, Q_next, j, i)
+        make_transition(configuration, instance, successor_specs, Q_next, j, i)
     end
 
     # tie breaking
-    stats.partial_quick_sort_time += @elapsed sorted_tie_breaking_indices = partialsortperm(tie_breaking_successor_spec_priorities, 1:maximum_number_of_ties)
-    stats.transitions_time += @elapsed Threads.@threads for i in 1:maximum_number_of_ties
-        successor_spec_idx = tie_breaking_successor_spec_indices[sorted_tie_breaking_indices[i]]
-        copy(instance, Q, Q_next, successor_specs.Q_idx[successor_spec_idx], number_of_non_ties + i)
-        make_transition(instance, successor_specs, Q_next, number_of_non_ties + i, successor_spec_idx)
+    stats.tie_breaking_time += @elapsed if configuration.tie_breaking == "lex"
+    elseif configuration.tie_breaking == "random"
+        sorted_tie_breaking_indices = @view randperm(number_of_ties)[1:maximum_number_of_ties]
+    elseif configuration.tie_breaking == "quicksort"
+        sorted_tie_breaking_indices = partialsortperm(tie_breaking_successor_spec_priorities, 1:maximum_number_of_ties)
+    else
+        throw(@sprintf("tie breaking %s not implemented", configuration.tie_breaking))
+    end
+    if configuration.tie_breaking == "lex"
+        stats.transitions_time += @elapsed Threads.@threads for i in 1:maximum_number_of_ties
+            successor_spec_idx = tie_breaking_successor_spec_indices[i]
+            copy(instance, Q, Q_next, successor_specs.Q_idx[successor_spec_idx], number_of_non_ties + i)
+            make_transition(configuration, instance, successor_specs, Q_next, number_of_non_ties + i, successor_spec_idx)
+        end
+    else
+        stats.transitions_time += @elapsed Threads.@threads for i in 1:maximum_number_of_ties
+            successor_spec_idx = tie_breaking_successor_spec_indices[sorted_tie_breaking_indices[i]]
+            copy(instance, Q, Q_next, successor_specs.Q_idx[successor_spec_idx], number_of_non_ties + i)
+            make_transition(configuration, instance, successor_specs, Q_next, number_of_non_ties + i, successor_spec_idx)
+        end
     end
 end
 
@@ -391,25 +421,18 @@ function is_new_objective_strictly_better(configuration::Configuration, new_obje
     end
 end
 
-function check_for_terminals(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam, Q_len::Int)
-    best_terminal = nothing
-    if configuration.problem_type == mini
-        best_objective = Inf
-    elseif configuration.problem_type == maxi
-        best_objective = -Inf
-    end
-
+function check_for_terminals(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam, Q_len::Int, best_solution, best_objective)
     for i in 1:Q_len
         if is_terminal(instance, beam, i)
             remaining_terminal_costs = terminal_costs(instance, beam, i)
             if is_new_objective_strictly_better(configuration, beam.nodes.costs_so_far[i] + remaining_terminal_costs, best_objective)
-                best_terminal = i
+                best_solution = get_solution(instance, beam, i)
                 best_objective = beam.nodes.costs_so_far[i] + remaining_terminal_costs
             end
         end
     end
 
-    best_terminal, best_objective
+    best_solution, best_objective
 end
 
 function parallel_check_for_terminals(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam, Q_len::Int)
@@ -456,7 +479,7 @@ function print_solution(solution)
     @info solution
 end
 
-function instance_csv_string(instance::AbstractInstance)::String
+function instance_csv_string(configuration::Configuration, instance::AbstractInstance)::String
 end
 
 function print_stats(stats::Statistics)
@@ -472,7 +495,7 @@ function print_stats(stats::Statistics)
     @printf("parallel counting sort time min max: %.02f\n", stats.parallel_counting_sort_time_min_max)
     @printf("parallel counting sort time binning: %.02f\n", stats.parallel_counting_sort_time_binning)
     @printf("parallel counting sort time cutting: %.02f\n", stats.parallel_counting_sort_time_cutting)
-    @printf("partial quick sort time: %.02f\n", stats.partial_quick_sort_time)
+    @printf("tie breaking time: %.02f\n", stats.tie_breaking_time)
     @printf("successor specs shrinking time: %.02f\n", stats.successor_specs_shrinking_time)
     @printf("states filtering time: %.02f\n", stats.states_filtering_time)
     if stats.number_of_non_tie_successors > 0
@@ -485,13 +508,45 @@ function print_stats(stats::Statistics)
     @printf("number of states filtered: %d\n", stats.number_of_states_filtered)
 end
 
+function print_additional_output(configuration::Configuration, instance::AbstractInstance, best_solution)
+end
+
 include("parbeam_states_filtering.jl")
+
+function filter_states(configuration::Configuration, instance::AbstractInstance, Q::AbstractBeam, Q_len::Int, layer::Number, lks::Array{Threads.SpinLock}, hash_table::Array{Vector{Int}}, hash_locks::Array{Threads.SpinLock}, m::Int)
+    if configuration.states_filtering == "duplicates_spinlocked"
+        number_of_states_filtered = filter_duplicate_states_spinlocked(configuration, instance, Q, Q_len, lks, layer)
+    elseif configuration.states_filtering == "duplicates_spinlocked_collect"
+        number_of_states_filtered = filter_duplicate_states_spinlocked_collect(configuration, instance, Q, Q_len, lks, layer)
+    elseif configuration.states_filtering == "duplicates_dict_merge"
+        number_of_states_filtered = filter_duplicate_states_dict_merge(configuration, instance, Q, Q_len, layer)
+    elseif configuration.states_filtering == "duplicates_separate_dicts"
+        number_of_states_filtered = filter_duplicate_states_separate_dicts(configuration, instance, Q, Q_len, layer)
+    elseif configuration.states_filtering == "duplicates_separate_dicts_final_merge"
+        number_of_states_filtered = filter_duplicate_states_separate_dicts_final_merge(configuration, instance, Q, Q_len, layer)
+    elseif configuration.states_filtering == "duplicates_concurrent_queues"
+        number_of_states_filtered = filter_duplicate_states_concurrent_queues(configuration, instance, Q, Q_len, hash_table, hash_locks, m, layer)
+    elseif configuration.states_filtering == "duplicates_spinlocked_non_dominated_lists"
+        number_of_states_filtered = filter_duplicate_states_spinlocked_non_dominated_lists(configuration, instance, Q, Q_len, hash_table, hash_locks, m, layer)
+    elseif configuration.states_filtering == "dominated"
+        number_of_states_filtered = filter_dominated_states(configuration, instance, Q, Q_len)
+    elseif configuration.states_filtering == "none"
+    else
+        throw(@sprintf("state filtering %s not implemented", configuration.states_filtering))
+    end
+
+    number_of_states_filtered
+end
 
 function construct(configuration::Configuration, instance::AbstractInstance, Q_up::AbstractBeam, Q_down::AbstractBeam, successor_specs::AbstractSuccessorData, sigma::Float64, stats::Statistics)
     #root_node = root(instance)
 
-    best_terminal = nothing
-    best_objective = Inf
+    best_solution = nothing
+    if configuration.problem_type == mini
+        best_objective = Inf
+    elseif configuration.problem_type == maxi
+        best_objective = -Inf
+    end
 
     #Q_up.nodes[1] = root_node
     Q_len = 1
@@ -501,40 +556,27 @@ function construct(configuration::Configuration, instance::AbstractInstance, Q_u
     is_up = true
     stats.number_of_surviving_successors += Q_len
 
-    stats.states_filtering_time += @elapsed if configuration.states_filtering == "duplicates_spinlocked" || configuration.states_filtering == "duplicates_spinlocked_collect"
-        lks = Array{Threads.SpinLock}(undef, 97)
-        for i in 1:length(lks)
-            lks[i] = Threads.SpinLock()
+    stats.states_filtering_time += @elapsed begin
+        if configuration.states_filtering != "none"
+            lks = Array{Threads.SpinLock}(undef, 97)
+            for i in 1:length(lks)
+                lks[i] = Threads.SpinLock()
+            end
+            hash_table, hash_locks, m = initialize_hash_table(configuration)
         end
-    elseif configuration.states_filtering == "duplicates_concurrent_queues"
-        hash_table, hash_locks, m = initialize_hash_table(configuration)
     end
 
     @info "Starting beam search"
     stats.main_loop_time = @elapsed while layer < configuration.maximum_layer_number
-        #@debug @sprintf("current layer: %d\n", layer)
-        if configuration.states_filtering == "duplicates_spinlocked"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_spinlocked(configuration, instance, Q, Q_len, lks)
-        elseif configuration.states_filtering == "duplicates_spinlocked_collect"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_spinlocked_collect(configuration, instance, Q, Q_len, lks)    
-        elseif configuration.states_filtering == "duplicates_dict_merge"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_dict_merge(configuration, instance, Q, Q_len)
-        elseif configuration.states_filtering == "duplicates_separate_dicts"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_separate_dicts(configuration, instance, Q, Q_len)
-        elseif configuration.states_filtering == "duplicates_separate_dicts_final_merge"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_separate_dicts_final_merge(configuration, instance, Q, Q_len)
-        elseif configuration.states_filtering == "duplicates_concurrent_queues"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_duplicate_states_concurrent_queues(configuration, instance, Q, Q_len, hash_table, hash_locks, m, layer)
-        elseif configuration.states_filtering == "dominated"
-            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_dominated_states(configuration, instance, Q, Q_len)
-        elseif configuration.states_filtering == "none"
-        else
-            throw(@sprintf("state filtering %s not implemented", configuration.states_filtering))
+        #@debug @sprintf("current layer: %d, Q_len: %d\n", layer, Q_len)
+        if configuration.states_filtering != "none"
+            stats.states_filtering_time += @elapsed stats.number_of_states_filtered += filter_states(configuration, instance, Q, Q_len, layer, lks, hash_table, hash_locks, m)
         end
         stats.successor_creation_time += @elapsed successors_count = create_successors(configuration, instance, Q, Q_len, successor_specs, sigma, layer)
         #@time stats.compress_successors_time += @elapsed compress_successors(successor_specs, successors_count, layer)
         stats.surviving_successors_time += @elapsed Q_len = surviving_successors(configuration, instance, layer, successor_specs, successors_count, Q, Q_next, stats)
 
+        #@debug @sprintf("new successors %d, survived have: %d\n", successors_count, Q_len)
         stats.number_of_successors += successors_count
         stats.number_of_surviving_successors += Q_len
         if Q_len == 0
@@ -543,7 +585,7 @@ function construct(configuration::Configuration, instance::AbstractInstance, Q_u
             break
         end
         #stats.transitions_time += @elapsed make_transitions(instance, surviving_successor_spec_indices, successor_specs, Q, Q_next, Q_len)
-        stats.terminal_check_time += @elapsed best_terminal, best_objective = check_for_terminals(configuration, instance, Q_next, Q_len)
+        stats.terminal_check_time += @elapsed best_solution, best_objective = check_for_terminals(configuration, instance, Q_next, Q_len, best_solution, best_objective)
         if configuration.shrink_successor_specs
             stats.successor_specs_shrinking_time += @elapsed shrink_successor_specs(configuration, instance, layer+1, successor_specs)
         end
@@ -558,8 +600,8 @@ function construct(configuration::Configuration, instance::AbstractInstance, Q_u
         print_custom_stats(instance)
     end
 
-    if best_terminal !== nothing
-        get_solution(instance, Q_next, best_terminal), best_objective, stats
+    if best_solution !== nothing
+        best_solution, best_objective, stats
     else
         [], best_objective, stats
     end
@@ -579,8 +621,11 @@ end
 function main_mpi(pre_run::Bool=false)
     start_time = time()
 
-    if(length(ARGS) != 9)
-        println("Usage: $PROGRAM_FILE <instance> <beam_width> <guidance_function> <depth_for_subtree_splitting> <number-of-runs> <sigma_rel> <variable_ordering> <successor-creation-load-balancing> <duplicate-states-filtering>")
+    AdditionalConfigurationType = additional_configuration_type()
+    additional_configuration_help_string = join(map(x -> "<" * string(x) * ">", fieldnames(AdditionalConfigurationType)), " ")
+
+    if(length(ARGS) != 10 + length(fieldnames(AdditionalConfigurationType)))
+        @printf("Usage: %s <instance> <beam_width> <guidance_function> <tie_breaking> <depth_for_subtree_splitting> <number-of-runs> <sigma_rel> <variable_ordering> <successor-creation-load-balancing> <duplicate-states-filtering> %s\n", "$PROGRAM_FILE", additional_configuration_help_string)
         exit(1)
     end
 
@@ -589,12 +634,20 @@ function main_mpi(pre_run::Bool=false)
     instance_description = ARGS[1]
     beam_width = parse(Int, ARGS[2])
     guidance_function = ARGS[3]
-    depth_for_subtree_splitting = parse(Int, ARGS[4])
-    number_of_runs = parse(Int, ARGS[5])
-    sigma_rel = parse(Float64, ARGS[6])
-    variable_ordering = ARGS[7]
-    successor_creation_load_balancing = ARGS[8]
-    states_filtering = ARGS[9]
+    tie_breaking = ARGS[4]
+    depth_for_subtree_splitting = parse(Int, ARGS[5])
+    number_of_runs = parse(Int, ARGS[6])
+    sigma_rel = parse(Float64, ARGS[7])
+    variable_ordering = ARGS[8]
+    successor_creation_load_balancing = ARGS[9]
+    states_filtering = ARGS[10]
+    arg_idx = 11
+
+    additional_parameters = []
+    for fieldtype in fieldtypes(AdditionalConfigurationType)
+        push!(additional_parameters, parse(fieldtype, ARGS[arg_idx]))
+        arg_idx += 1
+    end
 
     @info "Initializing MPI"
     MPI.Init()
@@ -615,7 +668,7 @@ function main_mpi(pre_run::Bool=false)
     @info "Preparing instance"
     stats.instance_preparation_time = @elapsed instance = read_instance(guidance_function, variable_ordering, instance_description)
     @info @sprintf("Finished preparing instance after %.02f s", stats.instance_preparation_time)
-    configuration = Configuration(problem_type(instance), beam_width, maximum_number_of_successors_per_node(instance), maximum_layer_number(instance), guidance_function, false, cld(get_cacheline_length(), sizeof(Int)), successor_creation_load_balancing, states_filtering)
+    configuration = Configuration(problem_type(instance), beam_width, maximum_number_of_successors_per_node(instance), maximum_layer_number(instance), variable_ordering, guidance_function, tie_breaking, false, cld(get_cacheline_length(), sizeof(Int)), successor_creation_load_balancing, states_filtering, AdditionalConfigurationType(additional_parameters...))
     if !pre_run
         @info @sprintf("configuration: %s\n", configuration)
     else
@@ -644,8 +697,8 @@ function main_mpi(pre_run::Bool=false)
     end
 
     stats.memory_init_time += @elapsed initialize_root(instance, Q_up)
-    root_lower_bound = initial_lb(configuration, instance, Q_up)
-    sigma = root_lower_bound*sigma_rel
+    root_estimate = initial_estimate(configuration, instance, Q_up)
+    sigma = root_estimate*sigma_rel
 
     moves_list = initial_successor_moves(instance, depth_for_subtree_splitting)
     for (i, initial_moves) in enumerate(moves_list)
@@ -660,23 +713,23 @@ function main_mpi(pre_run::Bool=false)
                 else
                     @sprintf("solving instance %s using beam search with beam width %d\n", instance_description, beam_width)
                 end
-                initial_lower_bound = initial_lb(configuration, instance, Q_up)
+                root_estimate_run = initial_estimate(configuration, instance, Q_up)
                 #@assert initial_lower_bound == initial_priority
-                @info @sprintf("initial LB: %d\n", initial_lower_bound)
+                @info @sprintf("initial estimate of run: %d\n", root_estimate_run)
             
-                construction_time = @elapsed best_terminal, best_objective, stats = construct(configuration, instance, Q_up, Q_down, successor_specs, sigma, stats)
+                construction_time = @elapsed best_solution, best_objective, stats = construct(configuration, instance, Q_up, Q_down, successor_specs, sigma, stats)
 
-                @info @sprintf("best terminal: %s\n", best_terminal)
+                @info @sprintf("best solution: %s\n", best_solution)
                 @info @sprintf("best objective: %f\n", best_objective)
 
-                push!(objectives_and_solutions, (best_objective, best_terminal))
+                push!(objectives_and_solutions, (best_objective, best_solution))
             
                 #@printf("[CSV] %s;%d;%s;%f;%f;%f;%f;%f;%f;%f\n", instance_name, beam_width, guidance_function, construction_time, stats.main_loop_time, stats.memory_init_time, stats.successor_creation_time, stats.surviving_successors_time, stats.transitions_time, stats.terminal_check_time)
                 #instance_description, beam_width, guidance_function, best_objective_over_subtrees, construction_time, stats
                 if !pre_run
-                    println(@sprintf("[CSV] %d;%d;%s;%s;%d;%s;%d;%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d", rank, Threads.nthreads(), instance_description, instance_csv_string(instance), beam_width, guidance_function, root_lower_bound, best_objective, construction_time, stats.main_loop_time, stats.memory_init_time, stats.instance_preparation_time, stats.successor_creation_time, stats.surviving_successors_time, stats.transitions_time, stats.terminal_check_time, stats.sequential_counting_sort_time, stats.partial_quick_sort_time, stats.parallel_counting_sort_time_min_max, stats.parallel_counting_sort_time_binning, stats.parallel_counting_sort_time_cutting, stats.states_filtering_time, stats.number_of_surviving_successors, stats.number_of_states_filtered))
+                    println(@sprintf("[CSV] %d;%d;%s;%s;%d;%s;%d;%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d", rank, Threads.nthreads(), instance_description, instance_csv_string(configuration, instance), beam_width, guidance_function, root_estimate, best_objective, construction_time, stats.main_loop_time, stats.memory_init_time, stats.instance_preparation_time, stats.successor_creation_time, stats.surviving_successors_time, stats.transitions_time, stats.terminal_check_time, stats.sequential_counting_sort_time, stats.tie_breaking_time, stats.parallel_counting_sort_time_min_max, stats.parallel_counting_sort_time_binning, stats.parallel_counting_sort_time_cutting, stats.states_filtering_time, stats.number_of_surviving_successors, stats.number_of_states_filtered))
                 else
-                    @sprintf("[CSV] %d;%d;%s;%s;%d;%s;%d;%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d", rank, Threads.nthreads(), instance_description, instance_csv_string(instance), beam_width, guidance_function, root_lower_bound, best_objective, construction_time, stats.main_loop_time, stats.memory_init_time, stats.instance_preparation_time, stats.successor_creation_time, stats.surviving_successors_time, stats.transitions_time, stats.terminal_check_time, stats.sequential_counting_sort_time, stats.partial_quick_sort_time, stats.parallel_counting_sort_time_min_max, stats.parallel_counting_sort_time_binning, stats.parallel_counting_sort_time_cutting, stats.states_filtering_time, stats.number_of_surviving_successors, stats.number_of_states_filtered)
+                    @sprintf("[CSV] %d;%d;%s;%s;%d;%s;%d;%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d", rank, Threads.nthreads(), instance_description, instance_csv_string(configuration, instance), beam_width, guidance_function, root_estimate, best_objective, construction_time, stats.main_loop_time, stats.memory_init_time, stats.instance_preparation_time, stats.successor_creation_time, stats.surviving_successors_time, stats.transitions_time, stats.terminal_check_time, stats.sequential_counting_sort_time, stats.tie_breaking_time, stats.parallel_counting_sort_time_min_max, stats.parallel_counting_sort_time_binning, stats.parallel_counting_sort_time_cutting, stats.states_filtering_time, stats.number_of_surviving_successors, stats.number_of_states_filtered)
                 end
             end
         end
@@ -693,7 +746,11 @@ function main_mpi(pre_run::Bool=false)
     end
 
     #min_obj_and_sol = minimum(objectives_and_solutions)
-    min_obj_and_sol = sort(objectives_and_solutions, by=first)[1]
+    if configuration.problem_type == mini
+        min_obj_and_sol = sort(objectives_and_solutions, by=first)[1]
+    elseif configuration.problem_type == maxi
+        min_obj_and_sol = sort(objectives_and_solutions, by=first)[end]
+    end
     if !pre_run
         @info @sprintf("minimum objective and solution: %s", min_obj_and_sol)
     else
@@ -710,19 +767,24 @@ function main_mpi(pre_run::Bool=false)
     MPI.Barrier(comm)
 
     if rank == 0
-        best_obj_and_sol_idx = argmin(all_objectives)
+        if configuration.problem_type == mini
+            best_obj_and_sol_idx = argmin(all_objectives)
+        elseif configuration.problem_type == maxi
+            best_obj_and_sol_idx = argmax(all_objectives)
+        end
         best_objective = all_objectives[best_obj_and_sol_idx][1]
         best_solution = all_solutions[best_obj_and_sol_idx]
         end_time = time()
         runtime_without_startup = end_time - start_time
         if !pre_run
-            @info @sprintf("%s\n", best_solution)
-            println(@sprintf("[CSV2] %s;%s;%d;%s;%d;%f;%d;%d;%f;%f;%d;%d", instance_description, instance_csv_string(instance), beam_width, guidance_function, depth_for_subtree_splitting, sigma_rel, root_lower_bound, best_objective, stats.instance_preparation_time, runtime_without_startup, size, Threads.nthreads()))
+            @info @sprintf("best solution over all runs: %s\n", best_solution)
+            println(@sprintf("[CSV2] %s;%s;%d;%s;%s;%s;%s;%d;%f;%d;%d;%f;%f;%d;%d", instance_description, instance_csv_string(configuration, instance), beam_width, guidance_function, tie_breaking, variable_ordering, states_filtering, depth_for_subtree_splitting, sigma_rel, root_estimate, best_objective, stats.instance_preparation_time, runtime_without_startup, size, Threads.nthreads()))
         else
-            @sprintf("%s\n", best_solution)
-            @sprintf("[CSV2] %s;%s;%d;%s;%d;%f;%d;%d;%f;%f;%d;%d", instance_description, instance_csv_string(instance), beam_width, guidance_function, depth_for_subtree_splitting, sigma_rel, root_lower_bound, best_objective, stats.instance_preparation_time, runtime_without_startup, size, Threads.nthreads())
+            @sprintf("best solution over all runs: %s\n", best_solution)
+            @sprintf("[CSV2] %s;%s;%d;%s;%s;%s;%s;%d;%f;%d;%d;%f;%f;%d;%d", instance_description, instance_csv_string(configuration, instance), beam_width, guidance_function, tie_breaking, variable_ordering, states_filtering, depth_for_subtree_splitting, sigma_rel, root_estimate, best_objective, stats.instance_preparation_time, runtime_without_startup, size, Threads.nthreads())
         end
         #@time print_solution(best_solution)
+        print_additional_output(configuration, instance, best_solution)
     end
 end
 

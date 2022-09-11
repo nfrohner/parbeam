@@ -47,7 +47,7 @@ function root(instance::Instance)
     PFSPNode(layer, costs_so_far, priority)
 end
 
-function initial_lb(configuration::Configuration, instance::Instance, beam::PFSPBeam)
+function initial_estimate(configuration::Configuration, instance::Instance, beam::PFSPBeam)
     #lb_2(instance, beam, 1, beam.additional_data)
     if configuration.guidance_function == "flow_time_bound_and_idle_time"
         0
@@ -434,7 +434,7 @@ function copy(from_successor::PFSPSuccessorData, to_successors::PFSPSuccessorDat
     to_successors.successor_move[to_idx] = from_successor.successor_move[from_idx]
 end
 
-function make_transition(instance::Instance, successor_specs::PFSPSuccessorData, Q::PFSPBeam, Q_idx::Int, spec_idx::Int)
+function make_transition(configuration::Configuration, instance::Instance, successor_specs::PFSPSuccessorData, Q::PFSPBeam, Q_idx::Int, spec_idx::Int)
     Q.nodes.layer[Q_idx] += 1
     Q.nodes.costs_so_far[Q_idx] = successor_specs.costs_after_move[spec_idx]
     Q.nodes.priority[Q_idx] = successor_specs.priority[spec_idx]
@@ -467,7 +467,7 @@ end
 function initial_move_down(configuration::Configuration, instance::Instance, Q::PFSPBeam, successor_moves::Vector{Int})
     Q_idx = 1
     #Q.nodes.priority[Q_idx] = lb_2(instance, Q, Q_idx, Q.additional_data)
-    Q.nodes.priority[Q_idx] = initial_lb(configuration, instance, Q)
+    Q.nodes.priority[Q_idx] = initial_estimate(configuration, instance, Q)
     for j in successor_moves
         if configuration.guidance_function == "flow_time_bound_and_idle_time"
             Q.nodes.costs_so_far[Q_idx] = flow_time_after_next_job(instance, Q, Q_idx, j)
@@ -644,7 +644,7 @@ function read_instance(guidance_function::String, variable_ordering::String, ins
     read_in_FSP(guidance_function, instance_description)
 end
 
-function instance_csv_string(instance::Instance)
+function instance_csv_string(configuration::Configuration, instance::Instance)
     @sprintf("%d;%d", instance.n, instance.m)
 end
 
