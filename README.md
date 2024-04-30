@@ -69,7 +69,7 @@ The pattern databases should be stored in data/TTP with the instance class as di
 
 An iterative parallel beam search run can be launched with:
 
-> JULIA_EXCLUSE=1 julia --threads=4 --project=. pbs_ttp.jl iter NL/nl10 3600 1048576 8 cvrph quicksort 2 0.001 lex duplicates_spinlocked_non_dominated_lists true
+> JULIA_EXCLUSIVE=1 julia --threads=4 --project=. pbs_ttp.jl iter NL/nl10 3600 1048576 8 cvrph quicksort 2 0.001 lex duplicates_spinlocked_non_dominated_lists true
 
 #ksucc successors in thousands, rpr rate of bound-pased pruned successors, #filt number of filtered successors by duplicate state check.
 
