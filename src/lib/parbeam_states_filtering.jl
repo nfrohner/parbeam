@@ -6,7 +6,7 @@ mutable struct Atomic{T}; @atomic x::T; end
 
 # helper functions
 function initialize_hash_table(configuration::Configuration)
-    m = prevprime(configuration.beam_width)
+    m = nextprime(configuration.beam_width)
 
     hash_table = Array{Vector{Int}}(undef, m)
     hash_locks = Array{Threads.SpinLock}(undef, m)
@@ -21,7 +21,7 @@ end
 
 
 function initialize_hash_table_old(configuration::Configuration)
-    m = prevprime(configuration.beam_width)
+    m = nextprime(configuration.beam_width)
 
     hash_table = Array{ConcurrentQueue{Int}}(undef, m)
 

@@ -47,7 +47,7 @@ struct AuxiliaryData
     bounds_by_state::Union{Array{UInt32, 4}, Array{UInt32, 5}, Nothing}
 end
 
-struct Instance <: AbstractInstance
+mutable struct Instance <: AbstractInstance
     n::Int
     d::Array{Int, 2}
     streak_limit::Int
@@ -70,34 +70,34 @@ function number_of_games(instance::Instance)
 end
 
 function initialize_beam(configuration::Configuration, instance::Instance)
-    layer = Array{Int16, 1}(undef, configuration.beam_width)
-    costs_so_far = Array{UInt32, 1}(undef, configuration.beam_width)
-    priority = Array{Float64, 1}(undef, configuration.beam_width)
+    layer = Array{Int16, 1}(undef, configuration.max_beam_width)
+    costs_so_far = Array{UInt32, 1}(undef, configuration.max_beam_width)
+    priority = Array{Float64, 1}(undef, configuration.max_beam_width)
     nodes = TTPNodeData(layer, costs_so_far, priority)
 
-    games = Array{UInt16, 2}(undef, number_of_games(instance), configuration.beam_width)
-    forbidden_opponents = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    rounds = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    positions = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    possible_away_streaks = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    possible_home_stands = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    heuristic_estimates = Array{Int, 2}(undef, instance.n, configuration.beam_width)
-    number_of_away_games_left = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    number_of_home_games_left = Array{UInt8, 2}(undef, instance.n, configuration.beam_width)
-    away_teams_left_masks = Array{UInt32, 2}(undef, instance.n, configuration.beam_width)
+    games = Array{UInt16, 2}(undef, number_of_games(instance), configuration.max_beam_width)
+    forbidden_opponents = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    rounds = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    positions = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    possible_away_streaks = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    possible_home_stands = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    heuristic_estimates = Array{Int, 2}(undef, instance.n, configuration.max_beam_width)
+    number_of_away_games_left = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    number_of_home_games_left = Array{UInt8, 2}(undef, instance.n, configuration.max_beam_width)
+    away_teams_left_masks = Array{UInt32, 2}(undef, instance.n, configuration.max_beam_width)
 
     additional_data = AdditionalData(games, forbidden_opponents, rounds, positions, possible_away_streaks, possible_home_stands, heuristic_estimates, number_of_away_games_left, number_of_home_games_left, away_teams_left_masks)
     TTPBeam(nodes, additional_data)
 end
 
 function initialize_successor_specs(configuration::Configuration, instance::Instance)::TTPSuccessorData
-    layer = Array{Int16, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    costs_after_move = Array{UInt32, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    priority = Array{Float64, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    Q_idx = Array{Int, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    successor_move = Array{UInt16, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    heuristic_estimates_delta_away_team = Array{Int, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
-    heuristic_estimates_delta_home_team = Array{Int, 1}(undef, configuration.beam_width*configuration.maximum_number_of_successors_by_node)
+    layer = Array{Int16, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    costs_after_move = Array{UInt32, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    priority = Array{Float64, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    Q_idx = Array{Int, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    successor_move = Array{UInt16, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    heuristic_estimates_delta_away_team = Array{Int, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
+    heuristic_estimates_delta_home_team = Array{Int, 1}(undef, configuration.max_beam_width*configuration.maximum_number_of_successors_by_node)
 
     successor_data = TTPSuccessorData(layer, costs_after_move, priority, Q_idx, successor_move, AdditionalSuccessorData(heuristic_estimates_delta_away_team, heuristic_estimates_delta_home_team))
     successor_data
@@ -185,6 +185,13 @@ function get_solution(instance::Instance, beam::TTPBeam, best_terminal::Int)
     end
 
     schedule
+end
+
+function prepare_run(configuration::Configuration, instance::Instance)
+    if configuration.variable_ordering == "random"
+        teams_permutation = convert(Array{Int}, randperm(instance.n))
+        instance.teams_permutation = teams_permutation
+    end
 end
 
 function read_in_TTP(guidance_function::String, variable_ordering::String, instance_name::String)
@@ -292,8 +299,9 @@ function next_team_dynamic(instance::Instance, beam::TTPBeam, Q_idx::Int, auxili
     max_team
 end
 
-function eval_successors(configuration::Configuration, instance::Instance, beam::TTPBeam, successor_specs::TTPSuccessorData, start_index::Int, Q_idx::Int, sigma::Float64)
+function eval_successors(configuration::Configuration, instance::Instance, beam::TTPBeam, successor_specs::TTPSuccessorData, start_index::Int, Q_idx::Int, sigma::Float64, cheap_eval::Bool)
     successor_count = 0
+    pruned_count = 0
     layer = beam.nodes.layer[Q_idx]
     pivot_team, min_round, max_round = next_team(instance, beam.additional_data, Q_idx)
 
@@ -301,7 +309,7 @@ function eval_successors(configuration::Configuration, instance::Instance, beam:
     auxiliary_data = instance.aux_by_thread[Threads.threadid()]
     
     if !dead_team_check_without_aux(instance, beam, Q_idx, layer, min_round, max_round)
-        return successor_count
+        return successor_count, pruned_count
     end
 
     #pivot_team = next_team_dynamic(instance, beam, Q_idx, auxiliary_data, min_round)
@@ -339,18 +347,22 @@ function eval_successors(configuration::Configuration, instance::Instance, beam:
                 throw(ArgumentError("unknown guidance"))
             end
             @assert successor_specs.priority[i] >= 0
-            successor_specs.layer[i] = layer + 1
-            if sigma > 0.0
-                successor_specs.priority[i] += randn()*sigma
+            if configuration.prune_successors && configuration.cut_value <= successor_specs.priority[i]
+                pruned_count += 1
+            else
+                successor_specs.layer[i] = layer + 1
+                if sigma > 0.0
+                    successor_specs.priority[i] += randn()*sigma
+                end
+                successor_specs.Q_idx[i] = Q_idx
+                successor_specs.successor_move[i] = j
+                successor_specs.additional_data.heuristic_estimates_delta_away_team[i] = heuristic_estimates_delta_away_team
+                successor_specs.additional_data.heuristic_estimates_delta_home_team[i] = heuristic_estimates_delta_home_team
+                successor_count += 1
             end
-            successor_specs.Q_idx[i] = Q_idx
-            successor_specs.successor_move[i] = j
-            successor_specs.additional_data.heuristic_estimates_delta_away_team[i] = heuristic_estimates_delta_away_team
-            successor_specs.additional_data.heuristic_estimates_delta_home_team[i] = heuristic_estimates_delta_home_team
-            successor_count += 1
         end
     end
-    successor_count
+    successor_count, pruned_count
 end
 
 function calc_heuristic_estimates_delta(instance::Instance, additional_data::AdditionalData, Q_idx::Int, away_team::Int, home_team::Int, auxiliary_data::AuxiliaryData)
@@ -419,7 +431,7 @@ function next_team(instance::Instance, additional_data::AdditionalData, Q_idx::I
         team = instance.teams_permutation[i]
         if additional_data.rounds[team,Q_idx] < min_round
             min_team = team
-            min_round -= 1
+            min_round -= UInt8(1)
             break
         end
     end
@@ -704,5 +716,3 @@ end
 function pre_run_instance_name(instance_name::String)::String
     "NL/nl6"
 end
-   
-@time main()
