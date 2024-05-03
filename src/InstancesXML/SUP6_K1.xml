@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Instance>
+
+  <MetaData>
+    <InstanceName>SUP6_K1</InstanceName>
+    <DataType>A</DataType>
+    <Contributor>Brandao, Pedroso</Contributor>
+    <Date year="2014"/>
+    <Country/>
+    <Remarks/>
+    <Lowerbound infeasibility="0" objective="0"/>
+  </MetaData>
+
+  <Structure>
+    <Format leagueIds="0">
+      <numberRoundRobin>2</numberRoundRobin>
+      <compactness>R</compactness>
+    </Format>
+    <AdditionalGames/>
+  </Structure>
+
+  <ObjectiveFunction>
+    <Objective>TR</Objective>
+  </ObjectiveFunction>
+
+  <Data>
+    <Distances>
+      <distance dist="0" team1="2" team2="2"/>
+      <distance dist="6712" team1="2" team2="3"/>
+      <distance dist="1429" team1="2" team2="1"/>
+      <distance dist="6628" team1="2" team2="0"/>
+      <distance dist="1455" team1="2" team2="4"/>
+      <distance dist="154" team1="2" team2="5"/>
+      <distance dist="6712" team1="3" team2="2"/>
+      <distance dist="0" team1="3" team2="3"/>
+      <distance dist="7586" team1="3" team2="1"/>
+      <distance dist="226" team1="3" team2="0"/>
+      <distance dist="7546" team1="3" team2="4"/>
+      <distance dist="6867" team1="3" team2="5"/>
+      <distance dist="1429" team1="1" team2="2"/>
+      <distance dist="7586" team1="1" team2="3"/>
+      <distance dist="0" team1="1" team2="1"/>
+      <distance dist="7431" team1="1" team2="0"/>
+      <distance dist="71" team1="1" team2="4"/>
+      <distance dist="1338" team1="1" team2="5"/>
+      <distance dist="6628" team1="0" team2="2"/>
+      <distance dist="226" team1="0" team2="3"/>
+      <distance dist="7431" team1="0" team2="1"/>
+      <distance dist="0" team1="0" team2="0"/>
+      <distance dist="7387" team1="0" team2="4"/>
+      <distance dist="6782" team1="0" team2="5"/>
+      <distance dist="1455" team1="4" team2="2"/>
+      <distance dist="7546" team1="4" team2="3"/>
+      <distance dist="71" team1="4" team2="1"/>
+      <distance dist="7387" team1="4" team2="0"/>
+      <distance dist="0" team1="4" team2="4"/>
+      <distance dist="1369" team1="4" team2="5"/>
+      <distance dist="154" team1="5" team2="2"/>
+      <distance dist="6867" team1="5" team2="3"/>
+      <distance dist="1338" team1="5" team2="1"/>
+      <distance dist="6782" team1="5" team2="0"/>
+      <distance dist="1369" team1="5" team2="4"/>
+      <distance dist="0" team1="5" team2="5"/>
+    </Distances>
+    <COEWeights/>
+    <Costs/>
+  </Data>
+
+  <Resources>
+    <TeamGroups>
+      <teamGroup id="0" name="All teams"/>
+    </TeamGroups>
+    <LeagueGroups/>
+    <Leagues>
+      <league id="0" name="League 0"/>
+    </Leagues>
+    <Teams>
+      <team id="0" league="0" name="BFN" teamGroups="0"/>
+      <team id="1" league="0" name="AKL" teamGroups="0"/>
+      <team id="2" league="0" name="CAN" teamGroups="0"/>
+      <team id="3" league="0" name="PRE" teamGroups="0"/>
+      <team id="4" league="0" name="HLM" teamGroups="0"/>
+      <team id="5" league="0" name="SYD" teamGroups="0"/>
+    </Teams>
+    <SlotGroups/>
+    <Slots>
+      <slot id="0" name="Slot0"/>
+      <slot id="1" name="Slot1"/>
+      <slot id="2" name="Slot2"/>
+      <slot id="3" name="Slot3"/>
+      <slot id="4" name="Slot4"/>
+      <slot id="5" name="Slot5"/>
+      <slot id="6" name="Slot6"/>
+      <slot id="7" name="Slot7"/>
+      <slot id="8" name="Slot8"/>
+      <slot id="9" name="Slot9"/>
+      <slot id="10" name="Slot10"/>
+    </Slots>
+  </Resources>
+
+  <Constraints>
+    <BasicConstraints/>
+    <CapacityConstraints>
+      <CA3 intp="4" max="3" min="0" mode1="H" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+      <CA3 intp="4" max="3" min="0" mode1="A" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+    </CapacityConstraints>
+    <GameConstraints/>
+    <BreakConstraints/>
+    <FairnessConstraints/>
+    <SeparationConstraints>
+      <SE1 max="11" min="1" penalty="1" teamGroups="0" type="HARD"/>
+    </SeparationConstraints>
+  </Constraints>
+
+</Instance>

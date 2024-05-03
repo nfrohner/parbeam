@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Instance>
+
+  <MetaData>
+    <InstanceName>MLB_DIV1</InstanceName>
+    <DataType>A</DataType>
+    <Contributor>Moody</Contributor>
+    <Date day="21" month="7" year="2010"/>
+    <Country/>
+    <Remarks>All teams' venues are embedded on a straigt line.</Remarks>
+    <Lowerbound infeasibility="0" objective="0"/>
+  </MetaData>
+
+  <Structure>
+    <Format leagueIds="0">
+      <numberRoundRobin>0</numberRoundRobin>
+      <compactness>C</compactness>
+    </Format>
+    <AdditionalGames>
+      <game noHome="0" team1="1" team2="0"/>
+      <game noHome="0" team1="1" team2="0"/>
+      <game noHome="0" team1="1" team2="0"/>
+      <game noHome="0" team1="0" team2="1"/>
+      <game noHome="0" team1="0" team2="1"/>
+      <game noHome="0" team1="0" team2="1"/>
+      <game noHome="0" team1="2" team2="0"/>
+      <game noHome="0" team1="2" team2="0"/>
+      <game noHome="0" team1="0" team2="2"/>
+      <game noHome="0" team1="0" team2="2"/>
+      <game noHome="0" team1="3" team2="0"/>
+      <game noHome="0" team1="3" team2="0"/>
+      <game noHome="0" team1="0" team2="3"/>
+      <game noHome="0" team1="0" team2="3"/>
+      <game noHome="0" team1="0" team2="3"/>
+      <game noHome="0" team1="4" team2="0"/>
+      <game noHome="0" team1="4" team2="0"/>
+      <game noHome="0" team1="4" team2="0"/>
+      <game noHome="0" team1="0" team2="4"/>
+      <game noHome="0" team1="0" team2="4"/>
+      <game noHome="0" team1="5" team2="0"/>
+      <game noHome="0" team1="5" team2="0"/>
+      <game noHome="0" team1="5" team2="0"/>
+      <game noHome="0" team1="0" team2="5"/>
+      <game noHome="0" team1="0" team2="5"/>
+      <game noHome="0" team1="0" team2="5"/>
+      <game noHome="0" team1="2" team2="1"/>
+      <game noHome="0" team1="2" team2="1"/>
+      <game noHome="0" team1="1" team2="2"/>
+      <game noHome="0" team1="1" team2="2"/>
+      <game noHome="0" team1="1" team2="2"/>
+      <game noHome="0" team1="3" team2="1"/>
+      <game noHome="0" team1="3" team2="1"/>
+      <game noHome="0" team1="1" team2="3"/>
+      <game noHome="0" team1="1" team2="3"/>
+      <game noHome="0" team1="4" team2="1"/>
+      <game noHome="0" team1="4" team2="1"/>
+      <game noHome="0" team1="4" team2="1"/>
+      <game noHome="0" team1="1" team2="4"/>
+      <game noHome="0" team1="1" team2="4"/>
+      <game noHome="0" team1="1" team2="4"/>
+      <game noHome="0" team1="5" team2="1"/>
+      <game noHome="0" team1="5" team2="1"/>
+      <game noHome="0" team1="5" team2="1"/>
+      <game noHome="0" team1="1" team2="5"/>
+      <game noHome="0" team1="1" team2="5"/>
+      <game noHome="0" team1="3" team2="2"/>
+      <game noHome="0" team1="3" team2="2"/>
+      <game noHome="0" team1="3" team2="2"/>
+      <game noHome="0" team1="2" team2="3"/>
+      <game noHome="0" team1="2" team2="3"/>
+      <game noHome="0" team1="2" team2="3"/>
+      <game noHome="0" team1="4" team2="2"/>
+      <game noHome="0" team1="4" team2="2"/>
+      <game noHome="0" team1="2" team2="4"/>
+      <game noHome="0" team1="2" team2="4"/>
+      <game noHome="0" team1="2" team2="4"/>
+      <game noHome="0" team1="5" team2="2"/>
+      <game noHome="0" team1="5" team2="2"/>
+      <game noHome="0" team1="5" team2="2"/>
+      <game noHome="0" team1="2" team2="5"/>
+      <game noHome="0" team1="2" team2="5"/>
+      <game noHome="0" team1="2" team2="5"/>
+      <game noHome="0" team1="4" team2="3"/>
+      <game noHome="0" team1="4" team2="3"/>
+      <game noHome="0" team1="4" team2="3"/>
+      <game noHome="0" team1="3" team2="4"/>
+      <game noHome="0" team1="3" team2="4"/>
+      <game noHome="0" team1="3" team2="4"/>
+      <game noHome="0" team1="5" team2="3"/>
+      <game noHome="0" team1="5" team2="3"/>
+      <game noHome="0" team1="3" team2="5"/>
+      <game noHome="0" team1="3" team2="5"/>
+      <game noHome="0" team1="3" team2="5"/>
+      <game noHome="0" team1="5" team2="4"/>
+      <game noHome="0" team1="5" team2="4"/>
+      <game noHome="0" team1="4" team2="5"/>
+      <game noHome="0" team1="4" team2="5"/>
+    </AdditionalGames>
+  </Structure>
+
+  <ObjectiveFunction>
+    <Objective>TR</Objective>
+  </ObjectiveFunction>
+
+  <Data>
+    <Distances>
+      <distance dist="0" team1="2" team2="2"/>
+      <distance dist="240" team1="2" team2="1"/>
+      <distance dist="304" team1="2" team2="3"/>
+      <distance dist="910" team1="2" team2="4"/>
+      <distance dist="313" team1="2" team2="5"/>
+      <distance dist="259" team1="2" team2="0"/>
+      <distance dist="240" team1="1" team2="2"/>
+      <distance dist="0" team1="1" team2="1"/>
+      <distance dist="258" team1="1" team2="3"/>
+      <distance dist="954" team1="1" team2="4"/>
+      <distance dist="82" team1="1" team2="5"/>
+      <distance dist="409" team1="1" team2="0"/>
+      <distance dist="304" team1="3" team2="2"/>
+      <distance dist="258" team1="3" team2="1"/>
+      <distance dist="0" team1="3" team2="3"/>
+      <distance dist="696" team1="3" team2="4"/>
+      <distance dist="323" team1="3" team2="5"/>
+      <distance dist="558" team1="3" team2="0"/>
+      <distance dist="910" team1="4" team2="2"/>
+      <distance dist="954" team1="4" team2="1"/>
+      <distance dist="696" team1="4" team2="3"/>
+      <distance dist="0" team1="4" team2="4"/>
+      <distance dist="1017" team1="4" team2="5"/>
+      <distance dist="1152" team1="4" team2="0"/>
+      <distance dist="313" team1="5" team2="2"/>
+      <distance dist="82" team1="5" team2="1"/>
+      <distance dist="323" team1="5" team2="3"/>
+      <distance dist="1017" team1="5" team2="4"/>
+      <distance dist="0" team1="5" team2="5"/>
+      <distance dist="446" team1="5" team2="0"/>
+      <distance dist="259" team1="0" team2="2"/>
+      <distance dist="409" team1="0" team2="1"/>
+      <distance dist="558" team1="0" team2="3"/>
+      <distance dist="1152" team1="0" team2="4"/>
+      <distance dist="446" team1="0" team2="5"/>
+      <distance dist="0" team1="0" team2="0"/>
+    </Distances>
+    <COEWeights/>
+    <Costs/>
+  </Data>
+
+  <Resources>
+    <TeamGroups>
+      <teamGroup id="0" name="All teams"/>
+    </TeamGroups>
+    <LeagueGroups/>
+    <Leagues>
+      <league id="0" name="League 0"/>
+    </Leagues>
+    <Teams>
+      <team id="0" league="0" name="PIT" teamGroups="0"/>
+      <team id="1" league="0" name="CHC" teamGroups="0"/>
+      <team id="2" league="0" name="CIN" teamGroups="0"/>
+      <team id="3" league="0" name="STL" teamGroups="0"/>
+      <team id="4" league="0" name="HOU" teamGroups="0"/>
+      <team id="5" league="0" name="MIL" teamGroups="0"/>
+    </Teams>
+    <SlotGroups/>
+    <Slots>
+      <slot id="0" name="Slot0"/>
+      <slot id="1" name="Slot1"/>
+      <slot id="2" name="Slot2"/>
+      <slot id="3" name="Slot3"/>
+      <slot id="4" name="Slot4"/>
+      <slot id="5" name="Slot5"/>
+      <slot id="6" name="Slot6"/>
+      <slot id="7" name="Slot7"/>
+      <slot id="8" name="Slot8"/>
+      <slot id="9" name="Slot9"/>
+      <slot id="10" name="Slot10"/>
+      <slot id="11" name="Slot11"/>
+      <slot id="12" name="Slot12"/>
+      <slot id="13" name="Slot13"/>
+      <slot id="14" name="Slot14"/>
+      <slot id="15" name="Slot15"/>
+      <slot id="16" name="Slot16"/>
+      <slot id="17" name="Slot17"/>
+      <slot id="18" name="Slot18"/>
+      <slot id="19" name="Slot19"/>
+      <slot id="20" name="Slot20"/>
+      <slot id="21" name="Slot21"/>
+      <slot id="22" name="Slot22"/>
+      <slot id="23" name="Slot23"/>
+      <slot id="24" name="Slot24"/>
+      <slot id="25" name="Slot25"/>
+    </Slots>
+  </Resources>
+
+  <Constraints>
+    <BasicConstraints/>
+    <CapacityConstraints>
+      <CA3 intp="4" max="3" min="0" mode1="H" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+      <CA3 intp="4" max="3" min="0" mode1="A" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+    </CapacityConstraints>
+    <GameConstraints/>
+    <BreakConstraints/>
+    <FairnessConstraints/>
+    <SeparationConstraints>
+      <SE1 max="26" min="1" penalty="1" teamGroups="0" type="HARD"/>
+    </SeparationConstraints>
+  </Constraints>
+
+</Instance>

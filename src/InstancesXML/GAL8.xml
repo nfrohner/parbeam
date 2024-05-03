@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Instance>
+
+  <MetaData>
+    <InstanceName>GAL8</InstanceName>
+    <DataType>A</DataType>
+    <Contributor>Uthus, Riddle, Guesgen</Contributor>
+    <Date day="22" month="7" year="2009"/>
+    <Country/>
+    <Remarks>Distances based on 3d distances between exoplanets in the universe and Earth.</Remarks>
+    <Lowerbound infeasibility="0" objective="0"/>
+  </MetaData>
+
+  <Structure>
+    <Format leagueIds="0">
+      <numberRoundRobin>2</numberRoundRobin>
+      <compactness>C</compactness>
+    </Format>
+    <AdditionalGames/>
+  </Structure>
+
+  <ObjectiveFunction>
+    <Objective>TR</Objective>
+  </ObjectiveFunction>
+
+  <Data>
+    <Distances>
+      <distance dist="0" team1="2" team2="2"/>
+      <distance dist="47" team1="2" team2="3"/>
+      <distance dist="15" team1="2" team2="0"/>
+      <distance dist="50" team1="2" team2="5"/>
+      <distance dist="22" team1="2" team2="1"/>
+      <distance dist="56" team1="2" team2="6"/>
+      <distance dist="56" team1="2" team2="7"/>
+      <distance dist="45" team1="2" team2="4"/>
+      <distance dist="47" team1="3" team2="2"/>
+      <distance dist="0" team1="3" team2="3"/>
+      <distance dist="34" team1="3" team2="0"/>
+      <distance dist="41" team1="3" team2="5"/>
+      <distance dist="32" team1="3" team2="1"/>
+      <distance dist="47" team1="3" team2="6"/>
+      <distance dist="14" team1="3" team2="7"/>
+      <distance dist="51" team1="3" team2="4"/>
+      <distance dist="15" team1="0" team2="2"/>
+      <distance dist="34" team1="0" team2="3"/>
+      <distance dist="0" team1="0" team2="0"/>
+      <distance dist="39" team1="0" team2="5"/>
+      <distance dist="10" team1="0" team2="1"/>
+      <distance dist="44" team1="0" team2="6"/>
+      <distance dist="44" team1="0" team2="7"/>
+      <distance dist="36" team1="0" team2="4"/>
+      <distance dist="50" team1="5" team2="2"/>
+      <distance dist="41" team1="5" team2="3"/>
+      <distance dist="39" team1="5" team2="0"/>
+      <distance dist="0" team1="5" team2="5"/>
+      <distance dist="40" team1="5" team2="1"/>
+      <distance dist="27" team1="5" team2="6"/>
+      <distance dist="48" team1="5" team2="7"/>
+      <distance dist="35" team1="5" team2="4"/>
+      <distance dist="22" team1="1" team2="2"/>
+      <distance dist="32" team1="1" team2="3"/>
+      <distance dist="10" team1="1" team2="0"/>
+      <distance dist="40" team1="1" team2="5"/>
+      <distance dist="0" team1="1" team2="1"/>
+      <distance dist="39" team1="1" team2="6"/>
+      <distance dist="44" team1="1" team2="7"/>
+      <distance dist="31" team1="1" team2="4"/>
+      <distance dist="56" team1="6" team2="2"/>
+      <distance dist="47" team1="6" team2="3"/>
+      <distance dist="44" team1="6" team2="0"/>
+      <distance dist="27" team1="6" team2="5"/>
+      <distance dist="39" team1="6" team2="1"/>
+      <distance dist="0" team1="6" team2="6"/>
+      <distance dist="59" team1="6" team2="7"/>
+      <distance dist="18" team1="6" team2="4"/>
+      <distance dist="56" team1="7" team2="2"/>
+      <distance dist="14" team1="7" team2="3"/>
+      <distance dist="44" team1="7" team2="0"/>
+      <distance dist="48" team1="7" team2="5"/>
+      <distance dist="44" team1="7" team2="1"/>
+      <distance dist="59" team1="7" team2="6"/>
+      <distance dist="0" team1="7" team2="7"/>
+      <distance dist="64" team1="7" team2="4"/>
+      <distance dist="45" team1="4" team2="2"/>
+      <distance dist="51" team1="4" team2="3"/>
+      <distance dist="36" team1="4" team2="0"/>
+      <distance dist="35" team1="4" team2="5"/>
+      <distance dist="31" team1="4" team2="1"/>
+      <distance dist="18" team1="4" team2="6"/>
+      <distance dist="64" team1="4" team2="7"/>
+      <distance dist="0" team1="4" team2="4"/>
+    </Distances>
+    <COEWeights/>
+    <Costs/>
+  </Data>
+
+  <Resources>
+    <TeamGroups>
+      <teamGroup id="0" name="All teams"/>
+    </TeamGroups>
+    <LeagueGroups/>
+    <Leagues>
+      <league id="0" name="League 0"/>
+    </Leagues>
+    <Teams>
+      <team id="0" league="0" name="SOL" teamGroups="0"/>
+      <team id="1" league="0" name="ERI" teamGroups="0"/>
+      <team id="2" league="0" name="ARA" teamGroups="0"/>
+      <team id="3" league="0" name="GEM" teamGroups="0"/>
+      <team id="4" league="0" name="PSC" teamGroups="0"/>
+      <team id="5" league="0" name="CEP" teamGroups="0"/>
+      <team id="6" league="0" name="AND" teamGroups="0"/>
+      <team id="7" league="0" name="CNC" teamGroups="0"/>
+    </Teams>
+    <SlotGroups/>
+    <Slots>
+      <slot id="0" name="Slot0"/>
+      <slot id="1" name="Slot1"/>
+      <slot id="2" name="Slot2"/>
+      <slot id="3" name="Slot3"/>
+      <slot id="4" name="Slot4"/>
+      <slot id="5" name="Slot5"/>
+      <slot id="6" name="Slot6"/>
+      <slot id="7" name="Slot7"/>
+      <slot id="8" name="Slot8"/>
+      <slot id="9" name="Slot9"/>
+      <slot id="10" name="Slot10"/>
+      <slot id="11" name="Slot11"/>
+      <slot id="12" name="Slot12"/>
+      <slot id="13" name="Slot13"/>
+    </Slots>
+  </Resources>
+
+  <Constraints>
+    <BasicConstraints/>
+    <CapacityConstraints>
+      <CA3 intp="4" max="3" min="0" mode1="H" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+      <CA3 intp="4" max="3" min="0" mode1="A" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+    </CapacityConstraints>
+    <GameConstraints/>
+    <BreakConstraints/>
+    <FairnessConstraints/>
+    <SeparationConstraints>
+      <SE1 max="14" min="1" penalty="1" teamGroups="0" type="HARD"/>
+    </SeparationConstraints>
+  </Constraints>
+
+</Instance>
