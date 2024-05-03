@@ -442,6 +442,60 @@ function is_new_objective_strictly_better(configuration::Configuration, new_obje
     end
 end
 
+using LightXML
+function create_xml(solutionVector, instanceFile, bestObj)
+    # Create a new XML document and its root element
+    xdoc = XMLDocument()
+    solution = create_root(xdoc, "Solution")
+
+    basefile = Base.basename(instanceFile)
+    basefile_no_ext = splitext(basefile)[1]
+    solution_filename = string("BeamSol_", basefile_no_ext, "_", bestObj, ".xml")
+    println("Write solution to ", solution_filename)
+    flush(stdout)
+
+
+    # MetaData section
+    metadata = new_child(solution, "MetaData")
+    c = new_child(metadata, "SolutionName")
+    add_text(c, solution_filename)
+    c = new_child(metadata, "InstanceName")
+    add_text(c, instanceFile)
+    c = new_child(metadata, "Contributor")
+    add_text(c, "Frohner, Neumann, and Raidl")
+    c = new_child(metadata, "Remarks")
+    add_text(c, "A Beam Search Approach to the Traveling Tournament Problem. Frohner et al.")
+    c = new_child(metadata, "SolutionMethod")
+    add_text(c, "H")
+    
+    # Adding ObjectiveValue with attributes
+    objective_value = new_child(metadata, "ObjectiveValue")
+    set_attribute(objective_value, "infeasibility", "0")
+    set_attribute(objective_value, "objective", bestObj)
+
+    # Games section
+    games = new_child(solution, "Games")
+
+    for r in 1:size(solutionVector, 1)
+        for team1 in 1:size(solutionVector, 2)
+            team2 = solutionVector[r, team1]
+            if team2 > 0  # Assuming 0 means no game scheduled
+                # Create scheduledMatch element
+                match = new_child(games, "ScheduledMatch")
+                # Set attributes
+                set_attribute(match, "slot", string(r - 1))  # Adjusting r to 0-based indexing
+                set_attribute(match, "home", string(team1 - 1))  # Adjusting team1 index to 0-based
+                set_attribute(match, "away", string(team2 - 1))  # Adjusting team2 index to 0-based 
+            end
+        end
+    end
+
+    # Save the XML document to a file
+    save_file(xdoc, solution_filename)
+end
+
+
+
 function check_for_terminals(configuration::Configuration, instance::AbstractInstance, beam::AbstractBeam, Q_len::Int, best_solution, best_objective)
     for i in 1:Q_len
         if is_terminal(instance, beam, i)
@@ -449,6 +503,8 @@ function check_for_terminals(configuration::Configuration, instance::AbstractIns
             if is_new_objective_strictly_better(configuration, beam.nodes.costs_so_far[i] + remaining_terminal_costs, best_objective)
                 best_solution = get_solution(instance, beam, i)
                 best_objective = beam.nodes.costs_so_far[i] + remaining_terminal_costs
+		# Save XML
+		create_xml(best_solution, instance.name, best_objective)
             end
         end
     end

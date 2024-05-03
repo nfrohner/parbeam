@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Instance>
+
+  <MetaData>
+    <InstanceName>NPB Pacific6</InstanceName>
+    <DataType>A</DataType>
+    <Contributor>Hoshino, Kawarabayashi</Contributor>
+    <Date year="2011"/>
+    <Country/>
+    <Remarks>Multi-round balanced TTP.</Remarks>
+    <Lowerbound infeasibility="0" objective="0"/>
+  </MetaData>
+
+  <Structure>
+    <Format leagueIds="0">
+      <numberRoundRobin>8</numberRoundRobin>
+      <compactness>C</compactness>
+      <gameMode>P</gameMode>
+    </Format>
+    <AdditionalGames/>
+  </Structure>
+
+  <ObjectiveFunction>
+    <Objective>TR</Objective>
+  </ObjectiveFunction>
+
+  <Data>
+    <Distances>
+      <distance dist="0" team1="4" team2="4"/>
+      <distance dist="1466" team1="4" team2="2"/>
+      <distance dist="595" team1="4" team2="3"/>
+      <distance dist="958" team1="4" team2="5"/>
+      <distance dist="934" team1="4" team2="0"/>
+      <distance dist="1100" team1="4" team2="1"/>
+      <distance dist="1466" team1="2" team2="4"/>
+      <distance dist="0" team1="2" team2="2"/>
+      <distance dist="1115" team1="2" team2="3"/>
+      <distance dist="928" team1="2" team2="5"/>
+      <distance dist="904" team1="2" team2="0"/>
+      <distance dist="580" team1="2" team2="1"/>
+      <distance dist="595" team1="3" team2="4"/>
+      <distance dist="1115" team1="3" team2="2"/>
+      <distance dist="0" team1="3" team2="3"/>
+      <distance dist="595" team1="3" team2="5"/>
+      <distance dist="582" team1="3" team2="0"/>
+      <distance dist="670" team1="3" team2="1"/>
+      <distance dist="958" team1="5" team2="4"/>
+      <distance dist="928" team1="5" team2="2"/>
+      <distance dist="595" team1="5" team2="3"/>
+      <distance dist="0" team1="5" team2="5"/>
+      <distance dist="86" team1="5" team2="0"/>
+      <distance dist="374" team1="5" team2="1"/>
+      <distance dist="934" team1="0" team2="4"/>
+      <distance dist="904" team1="0" team2="2"/>
+      <distance dist="582" team1="0" team2="3"/>
+      <distance dist="86" team1="0" team2="5"/>
+      <distance dist="0" team1="0" team2="0"/>
+      <distance dist="361" team1="0" team2="1"/>
+      <distance dist="1100" team1="1" team2="4"/>
+      <distance dist="580" team1="1" team2="2"/>
+      <distance dist="670" team1="1" team2="3"/>
+      <distance dist="374" team1="1" team2="5"/>
+      <distance dist="361" team1="1" team2="0"/>
+      <distance dist="0" team1="1" team2="1"/>
+    </Distances>
+    <COEWeights/>
+    <Costs/>
+  </Data>
+
+  <Resources>
+    <TeamGroups>
+      <teamGroup id="0" name="All teams"/>
+    </TeamGroups>
+    <LeagueGroups/>
+    <Leagues>
+      <league id="0" name="League 0"/>
+    </Leagues>
+    <Teams>
+      <team id="0" league="0" name="Chiba" teamGroups="0"/>
+      <team id="1" league="0" name="Tohoku" teamGroups="0"/>
+      <team id="2" league="0" name="Hokkaido" teamGroups="0"/>
+      <team id="3" league="0" name="Orix" teamGroups="0"/>
+      <team id="4" league="0" name="Fukuoka" teamGroups="0"/>
+      <team id="5" league="0" name="Saitama" teamGroups="0"/>
+    </Teams>
+    <SlotGroups>
+      <slotGroup id="0" name="All slots"/>
+    </SlotGroups>
+    <Slots>
+      <slot id="0" name="Slot0" slotGroup="0"/>
+      <slot id="1" name="Slot1" slotGroup="0"/>
+      <slot id="2" name="Slot2" slotGroup="0"/>
+      <slot id="3" name="Slot3" slotGroup="0"/>
+      <slot id="4" name="Slot4" slotGroup="0"/>
+      <slot id="5" name="Slot5" slotGroup="0"/>
+      <slot id="6" name="Slot6" slotGroup="0"/>
+      <slot id="7" name="Slot7" slotGroup="0"/>
+      <slot id="8" name="Slot8" slotGroup="0"/>
+      <slot id="9" name="Slot9" slotGroup="0"/>
+      <slot id="10" name="Slot10" slotGroup="0"/>
+      <slot id="11" name="Slot11" slotGroup="0"/>
+      <slot id="12" name="Slot12" slotGroup="0"/>
+      <slot id="13" name="Slot13" slotGroup="0"/>
+      <slot id="14" name="Slot14" slotGroup="0"/>
+      <slot id="15" name="Slot15" slotGroup="0"/>
+      <slot id="16" name="Slot16" slotGroup="0"/>
+      <slot id="17" name="Slot17" slotGroup="0"/>
+      <slot id="18" name="Slot18" slotGroup="0"/>
+      <slot id="19" name="Slot19" slotGroup="0"/>
+      <slot id="20" name="Slot20" slotGroup="0"/>
+      <slot id="21" name="Slot21" slotGroup="0"/>
+      <slot id="22" name="Slot22" slotGroup="0"/>
+      <slot id="23" name="Slot23" slotGroup="0"/>
+      <slot id="24" name="Slot24" slotGroup="0"/>
+      <slot id="25" name="Slot25" slotGroup="0"/>
+      <slot id="26" name="Slot26" slotGroup="0"/>
+      <slot id="27" name="Slot27" slotGroup="0"/>
+      <slot id="28" name="Slot28" slotGroup="0"/>
+      <slot id="29" name="Slot29" slotGroup="0"/>
+      <slot id="30" name="Slot30" slotGroup="0"/>
+      <slot id="31" name="Slot31" slotGroup="0"/>
+      <slot id="32" name="Slot32" slotGroup="0"/>
+      <slot id="33" name="Slot33" slotGroup="0"/>
+      <slot id="34" name="Slot34" slotGroup="0"/>
+      <slot id="35" name="Slot35" slotGroup="0"/>
+      <slot id="36" name="Slot36" slotGroup="0"/>
+      <slot id="37" name="Slot37" slotGroup="0"/>
+      <slot id="38" name="Slot38" slotGroup="0"/>
+      <slot id="39" name="Slot39" slotGroup="0"/>
+    </Slots>
+  </Resources>
+
+  <Constraints>
+    <BasicConstraints/>
+    <CapacityConstraints>
+      <CA3 intp="4" max="3" min="0" mode1="H" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+      <CA3 intp="4" max="3" min="0" mode1="A" mode2="GAMES" penalty="1" teamGroups1="0" teamGroups2="0" type="HARD"/>
+    </CapacityConstraints>
+    <GameConstraints/>
+    <BreakConstraints/>
+    <FairnessConstraints/>
+    <SeparationConstraints>
+      <SE1 max="40" min="1" penalty="1" teamGroups="0" type="HARD"/>
+    </SeparationConstraints>
+  </Constraints>
+
+  <FA1 intp="3" penalty="1" slotGroups="0" teamGroups="0" type="HARD"/>
+
+</Instance>
