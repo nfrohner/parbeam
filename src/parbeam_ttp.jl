@@ -8,6 +8,7 @@ using Printf: @printf
 using JLD2
 using CodecZlib
 using JLSO
+using LightXML
 
 # specialized types
 mutable struct AdditionalData <: AbstractAdditionalData
@@ -55,6 +56,7 @@ mutable struct Instance <: AbstractInstance
     games::Vector{Tuple{Int,Int}}
     aux_by_thread::Vector{AuxiliaryData}
     teams_permutation::Array{Int, 1}
+    name::String
 end
 
 function maximum_layer_number(instance::Instance)
@@ -195,11 +197,28 @@ function prepare_run(configuration::Configuration, instance::Instance)
 end
 
 function read_in_TTP(guidance_function::String, variable_ordering::String, instance_name::String)
-    file_name = string("insts/TTP/", instance_name, ".txt")
-    d = readdlm(file_name, Int)
-    n = size(d)[1]::Int
+
+    # Read from XML
+    #file_name = string("insts/TTP/", instance_name, ".txt")
+    #d = readdlm(file_name, Int)
+    #n = size(d)[1]::Int
+    
     streak_limit = 3
     no_repeat = true
+
+    file_name = string("InstancesXML/", instance_name, ".xml")
+    xdoc = parse_file(file_name)
+    # get the root element
+    xroot = root(xdoc)  # an instance of XMLElement
+    data = find_element(xroot,"Data")
+    distance = find_element(data, "Distances")
+    distances = collect(child_elements(distance))
+    n = convert(Int64, sqrt(length(distances)))
+    d = zeros(Int64, n, n)
+    for c in distances
+	    # Julia uses 1-based numbering
+	    d[parse(Int64,attribute(c,"team1"))+1,parse(Int64,attribute(c,"team2"))+1] = parse(Int64,attribute(c, "dist"))
+    end
 
     games = Vector{Tuple{Int,Int}}()
     sizehint!(games, n*(n-1))
@@ -212,6 +231,7 @@ function read_in_TTP(guidance_function::String, variable_ordering::String, insta
     end
 
     if guidance_function == "cvrph"
+        #bounds_file = string("data/TTP/", instance_name, "_cvrph.jld2")
         bounds_file = string("data/TTP/", instance_name, "_cvrph.jld2")
         if isfile(bounds_file)
             bounds_by_state = load(bounds_file)["bounds"]::Array{UInt32, 5}
@@ -250,7 +270,7 @@ function read_in_TTP(guidance_function::String, variable_ordering::String, insta
         teams_permutation = convert(Array{Int}, 1:n)
     end
 
-    Instance(n, d, streak_limit, no_repeat, games, aux_by_thread, teams_permutation)
+    Instance(n, d, streak_limit, no_repeat, games, aux_by_thread, teams_permutation, instance_name)
 end
 
 function read_instance(guidance_function::String, variable_ordering::String, instance_description::String)
@@ -714,5 +734,6 @@ function instance_size(instance::Instance)
 end
 
 function pre_run_instance_name(instance_name::String)::String
-    "NL/nl6"
+    "NL6"
+    #"NL/nl6"
 end

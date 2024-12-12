@@ -1,0 +1,5 @@
+Bound calculation:
+julia --project=. -p 1 ttp_bounds_precalculation.jl InstancesXML/LINE16.xml 3 data/TTP/LINE16_cvrph.jlso true
+
+Running
+JULIA_EXCLUSIVE=1 julia --threads=6 --project=. pbs_ttp.jl iter LINE12 3600 2097152 2 cvrph quicksort 1 0.001 lex duplicates_spinlocked_non_dominated_lists true

@@ -1,2 +1,5 @@
 .DS_Store
 src/Manifest.toml
+BeamSol*.xml
+data/TTP/*_cvrph.jlso
+data/TTP/*_cvrp.jlso
